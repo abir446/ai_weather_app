@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #71b7e6, #9b59b6);
+        }
+
+        .container {
+            max-width: 400px;
+            width: 90%;
+            padding: 20px;
+        }
+
+        .weather-card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        .weather-card h1 {
+            font-size: 1.8em;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .weather-emoji {
+            font-size: 4em;
+            margin: 10px 0;
+        }
+
+        .weather-info {
+            margin: 15px 0;
+        }
+
+        .weather-info p {
+            font-size: 1.1em;
+            color: #555;
+            margin: 5px 0;
+        }
+
+        .error {
+            color: #e74c3c;
+            font-size: 1em;
+            margin-top: 10px;
+        }
+
+        .loading {
+            font-size: 1.2em;
+            color: #555;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            .container {
+                width: 95%;
+                padding: 10px;
+            }
+
+            .weather-card h1 {
+                font-size: 1.5em;
+            }
+
+            .weather-emoji {
+                font-size: 3em;
+            }
+
+            .weather-info p {
+                font-size: 1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="weather-card">
+            <h1>Weather in <span id="location">...</span></h1>
+            <div class="weather-emoji" id="weather-emoji">⏳</div>
+            <div class="weather-info">
+                <p>Temperature: <span id="temperature">...</span></p>
+                <p>Weather: <span id="description">...</span></p>
+                <p>Humidity: <span id="humidity">...</span></p>
+                <p>Wind Speed: <span id="wind-speed">...</span></p>
+            </div>
+            <p id="error" class="error" style="display: none;"></p>
+        </div>
+    </div>
+
+    <script>
+        const apiKey = 'f0f696d8d9b4ec696ac5b58feb28797d'; // Replace with your OpenWeatherMap API key
+        const weatherEmoji = document.getElementById('weather-emoji');
+        const locationElement = document.getElementById('location');
+        const temperatureElement = document.getElementById('temperature');
+        const descriptionElement = document.getElementById('description');
+        const humidityElement = document.getElementById('humidity');
+        const windSpeedElement = document.getElementById('wind-speed');
+        const errorElement = document.getElementById('error');
+
+        // Weather condition to emoji mapping
+        const weatherEmojis = {
+            'Clear': '☀️',
+            'Clouds': '☁️',
+            'Rain': '🌧️',
+            'Drizzle': '🌦️',
+            'Thunderstorm': '⛈️',
+            'Snow': '❄️',
+            'Mist': '🌫️',
+            'Fog': '🌫️',
+            'Haze': '🌫️'
+        };
+
+        // Get user's location
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(fetchWeather, showError);
+            } else {
+                showError('Geolocation is not supported by this browser.');
+            }
+        }
+
+        // Fetch weather data
+        async function fetchWeather(position) {
+            const { latitude, longitude } = position.coords;
+            const url = `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&units=metric&appid=${apiKey}`;
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error('Unable to fetch weather data.');
+                }
+                const data = await response.json();
+                displayWeather(data);
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        // Display weather data
+        function displayWeather(data) {
+            const { name, main, weather, wind } = data;
+            const weatherCondition = weather[0].main;
+            const emoji = weatherEmojis[weatherCondition] || '🌈';
+
+            locationElement.textContent = name;
+            weatherEmoji.textContent = emoji;
+            temperatureElement.textContent = `${Math.round(main.temp)}°C`;
+            descriptionElement.textContent = weather[0].description;
+            humidityElement.textContent = `${main.humidity}%`;
+            windSpeedElement.textContent = `${wind.speed} m/s`;
+            errorElement.style.display = 'none';
+        }
+
+        // Show error message
+        function showError(message) {
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+            weatherEmoji.textContent = '❌';
+            locationElement.textContent = 'Unknown';
+            temperatureElement.textContent = '...';
+            descriptionElement.textContent = '...';
+            humidityElement.textContent = '...';
+            windSpeedElement.textContent = '...';
+        }
+
+        // Initialize
+        getLocation();
+    </script>
+</body>
+</html>
