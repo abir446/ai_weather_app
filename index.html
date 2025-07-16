@@ -164,7 +164,9 @@
             padding: 10px;
             border-top: 1px solid #ddd;
             display: flex;
-            gap: 10px;
+            flex-wrap: wrap; /* Allow wrapping for mobile */
+            gap: 8px;
+            align-items: center;
         }
 
         .chat-input {
@@ -173,6 +175,7 @@
             border: 1px solid #ddd;
             border-radius: 20px;
             font-size: 1em;
+            min-width: 100px; /* Ensure input doesn't shrink too much */
         }
 
         .send-button {
@@ -183,6 +186,7 @@
             padding: 10px 15px;
             cursor: pointer;
             transition: background 0.3s;
+            min-width: 80px; /* Fixed width for buttons */
         }
 
         .send-button:hover {
@@ -197,6 +201,7 @@
             padding: 10px 15px;
             cursor: pointer;
             transition: background 0.3s;
+            min-width: 80px; /* Fixed width for buttons */
         }
 
         .close-button:hover {
@@ -236,6 +241,18 @@
 
             .chat-input {
                 font-size: 0.9em;
+                padding: 8px; /* Reduced padding for mobile */
+            }
+
+            .send-button, .close-button {
+                padding: 8px 12px; /* Smaller padding for mobile */
+                font-size: 0.9em;
+                min-width: 70px; /* Slightly smaller buttons */
+            }
+
+            .chat-footer {
+                gap: 6px; /* Smaller gap for mobile */
+                padding: 8px; /* Reduced padding */
             }
         }
     </style>
@@ -262,7 +279,7 @@
             <div class="chat-body" id="chatBody">
                 <div class="ai-message">Hello! I'm your Weather Bot. Ask me anything about the weather! 😊</div>
             </div>
-            <div class="chat-footer">
+            <div class="chatSNS:chat-footer">
                 <input type="text" class="chat-input" id="chatInput" placeholder="Type your message...">
                 <button class="send-button" onclick="sendMessage()">Send</button>
                 <button class="close-button" onclick="closeChat()">Close</button>
@@ -271,7 +288,7 @@
     </div>
 
     <script>
-        const weatherApiKey = 'f0f696d8d9b4ec696ac5b58feb28797d'; 
+        const weatherApiKey = 'f0f696d8d9b4ec696ac5b58feb28797d';
         const geminiApiKey = 'AIzaSyDMoA4RxpPDCTsPcn3uAcIBblS6n0KNYKE';
         const weatherEmoji = document.getElementById('weather-emoji');
         const locationElement = document.getElementById('location');
@@ -284,7 +301,7 @@
         const chatBody = document.getElementById('chatBody');
         const chatInput = document.getElementById('chatInput');
 
-        // Weather condition to emoji mapping
+        
         const weatherEmojis = {
             'Clear': '☀️',
             'Clouds': '☁️',
@@ -299,7 +316,7 @@
 
         let currentWeatherData = null;
 
-        // Get user's location
+        
         function getLocation() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(fetchWeather, showError);
@@ -308,7 +325,7 @@
             }
         }
 
-        // Fetch weather data
+        
         async function fetchWeather(position) {
             const { latitude, longitude } = position.coords;
             const url = `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&units=metric&appid=${weatherApiKey}`;
@@ -326,7 +343,6 @@
             }
         }
 
-        // Display weather data
         function displayWeather(data) {
             const { name, main, weather, wind } = data;
             const weatherCondition = weather[0].main;
@@ -341,7 +357,6 @@
             errorElement.style.display = 'none';
         }
 
-        // Show error message
         function showError(message) {
             errorElement.textContent = message;
             errorElement.style.display = 'block';
@@ -353,17 +368,14 @@
             windSpeedElement.textContent = '...';
         }
 
-        // Open chat modal
         function openChat() {
             chatModal.style.display = 'flex';
         }
 
-        // Close chat modal
         function closeChat() {
             chatModal.style.display = 'none';
         }
 
-        // Show typing indicator
         function showTypingIndicator() {
             const typingDiv = document.createElement('div');
             typingDiv.className = 'typing-indicator';
@@ -373,14 +385,12 @@
             return typingDiv;
         }
 
-        // Remove typing indicator
         function removeTypingIndicator(typingDiv) {
             if (typingDiv && typingDiv.parentNode) {
                 typingDiv.parentNode.removeChild(typingDiv);
             }
         }
 
-        // Fetch AI response from Gemini API
         async function fetchAIResponse(message, temperature) {
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiApiKey}`;
             const prompt = `Based on the current temperature ${temperature}°C, ${message}`;
@@ -409,26 +419,21 @@
             }
         }
 
-        // Send message and get AI response
         async function sendMessage() {
             const message = chatInput.value.trim();
             if (!message) return;
 
-            // Add user message
             const userMessage = document.createElement('div');
             userMessage.className = 'message user-message';
             userMessage.textContent = message;
             chatBody.appendChild(userMessage);
             chatBody.scrollTop = chatBody.scrollHeight;
 
-            // Show typing indicator
             const typingDiv = showTypingIndicator();
 
-            // Get AI response
             const temperature = currentWeatherData ? Math.round(currentWeatherData.main.temp) : 'unknown';
             const aiResponse = await fetchAIResponse(message, temperature);
 
-            // Remove typing indicator and add AI response
             removeTypingIndicator(typingDiv);
             const aiMessage = document.createElement('div');
             aiMessage.className = 'message ai-message';
